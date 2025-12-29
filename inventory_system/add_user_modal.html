@@ -1,0 +1,40 @@
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="userModalLabel">Add New System User</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="userForm" action="process_user.php" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="save">
+                    <input type="hidden" name="user_id" id="user_id" value="">
+
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="role" class="form-label">User Role</label>
+                        <select class="form-select" id="role" name="role" required>
+                            <option value="Cashier">Cashier (Billing only)</option>
+                            <option value="Manager">Manager (Billing, Purchase, Reports)</option>
+                            <option value="Admin">Admin (All Access, including User Mgmt)</option>
+                        </select>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success"><i class="fas fa-save me-2"></i>Save User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
