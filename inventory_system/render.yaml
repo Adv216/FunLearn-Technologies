@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: inventory-app
+    env: php
+    plan: free
+    buildCommand: ""
+    startCommand: "php -S 0.0.0.0:10000 -t ."
