@@ -1,23 +1,29 @@
 <?php
-// Database Connection Details
-$servername = "127.0.0.1";
-$username = "root";
-$password = ""; // ← Leave blank since your root has no password now
-$dbname = "inventorybillingdb";
-$port = 3307;
+// ===================================================
+// RAILWAY DATABASE CONNECTION (PRODUCTION READY)
+// ===================================================
+
+// Load credentials from Railway environment
+$servername = getenv("MYSQLHOST");
+$username   = getenv("MYSQLUSER");
+$password   = getenv("MYSQLPASSWORD");
+$dbname     = getenv("MYSQLDATABASE");
+$port       = getenv("MYSQLPORT");
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname, $port);
 
 // Check connection
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    die("Database Connection Failed: " . $conn->connect_error);
 }
 
-// Set charset for proper symbol display (₹ etc.)
+// Set charset
 $conn->set_charset("utf8");
 
-// --- START: STRUCTURAL TABLE CREATIONS ---
+// ===================================================
+// STRUCTURAL TABLE CREATIONS
+// ===================================================
 
 $sql_structural_tables = "
 CREATE TABLE IF NOT EXISTS PURCHASE (
@@ -66,18 +72,22 @@ if ($conn->multi_query($sql_structural_tables)) {
     } while ($conn->more_results() && $conn->next_result());
 }
 
+// ===================================================
+// DEFAULT ADMIN ACCOUNT
+// ===================================================
+
 $check_admin = $conn->query("SELECT User_ID FROM USERS WHERE Username='admin'");
 if ($check_admin && $check_admin->num_rows == 0) {
-    $default_password = md5('admin123');
-    $sql_insert_admin = "INSERT INTO USERS (Username, Password, Role)
-                         VALUES ('admin', '$default_password', 'Admin')";
-    $conn->query($sql_insert_admin);
+    $default_password = password_hash("admin123", PASSWORD_DEFAULT);
+    $conn->query("INSERT INTO USERS (Username, Password, Role)
+                  VALUES ('admin', '$default_password', 'Admin')");
 }
 
-// --- END: STRUCTURAL TABLE CREATIONS ---
+// ===================================================
+// DEMAND FORECAST TABLE
+// ===================================================
 
-// --- START: DEMAND FORECAST TABLE CREATION ---
-$sql_forecast_table = "
+$conn->query("
 CREATE TABLE IF NOT EXISTS DEMAND_FORECAST (
     Forecast_ID INT PRIMARY KEY AUTO_INCREMENT,
     Product_ID INT NOT NULL,
@@ -87,13 +97,11 @@ CREATE TABLE IF NOT EXISTS DEMAND_FORECAST (
     UNIQUE KEY unique_forecast (Product_ID, Forecast_Month),
     FOREIGN KEY (Product_ID) REFERENCES PRODUCTS(Product_ID) ON DELETE CASCADE
 );
-";
-$conn->query($sql_forecast_table);
-// --- END: DEMAND FORECAST TABLE CREATION ---
+");
 
-/* ============================================================
-   BOOK COST SYSTEM TABLES  (ONLY ADDITION — nothing else touched)
-   ============================================================ */
+// ===================================================
+// BOOK COST SYSTEM TABLES
+// ===================================================
 
 $conn->query("
 CREATE TABLE IF NOT EXISTS BOOK_COST_SHEETS (
@@ -117,5 +125,4 @@ CREATE TABLE IF NOT EXISTS BOOK_COST_ITEMS (
 );
 ");
 
-/* ===================== END BOOK COST ADDITIONS ===================== */
 ?>
