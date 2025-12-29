@@ -1,14 +1,14 @@
 <?php
-// ===================================================
-// RAILWAY DATABASE CONNECTION (PRODUCTION READY)
-// ===================================================
+// =======================================================
+// DATABASE CONNECTION (RENDER CLOUD VERSION)
+// =======================================================
 
-// Load credentials from Railway environment
-$servername = getenv("MYSQLHOST");
-$username   = getenv("MYSQLUSER");
-$password   = getenv("MYSQLPASSWORD");
-$dbname     = getenv("MYSQLDATABASE");
-$port       = getenv("MYSQLPORT");
+// Fetch credentials from Render Environment Variables
+$servername = getenv("DB_HOST");
+$username   = getenv("DB_USER");
+$password   = getenv("DB_PASSWORD");
+$dbname     = getenv("DB_NAME");
+$port       = getenv("DB_PORT");
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname, $port);
@@ -18,12 +18,12 @@ if ($conn->connect_error) {
     die("Database Connection Failed: " . $conn->connect_error);
 }
 
-// Set charset
+// Set charset for proper symbol display (₹ etc.)
 $conn->set_charset("utf8");
 
-// ===================================================
+// =======================================================
 // STRUCTURAL TABLE CREATIONS
-// ===================================================
+// =======================================================
 
 $sql_structural_tables = "
 CREATE TABLE IF NOT EXISTS PURCHASE (
@@ -72,22 +72,23 @@ if ($conn->multi_query($sql_structural_tables)) {
     } while ($conn->more_results() && $conn->next_result());
 }
 
-// ===================================================
+// =======================================================
 // DEFAULT ADMIN ACCOUNT
-// ===================================================
+// =======================================================
 
 $check_admin = $conn->query("SELECT User_ID FROM USERS WHERE Username='admin'");
 if ($check_admin && $check_admin->num_rows == 0) {
-    $default_password = password_hash("admin123", PASSWORD_DEFAULT);
-    $conn->query("INSERT INTO USERS (Username, Password, Role)
-                  VALUES ('admin', '$default_password', 'Admin')");
+    $default_password = password_hash('admin123', PASSWORD_DEFAULT);
+    $sql_insert_admin = "INSERT INTO USERS (Username, Password, Role)
+                         VALUES ('admin', '$default_password', 'Admin')";
+    $conn->query($sql_insert_admin);
 }
 
-// ===================================================
+// =======================================================
 // DEMAND FORECAST TABLE
-// ===================================================
+// =======================================================
 
-$conn->query("
+$sql_forecast_table = "
 CREATE TABLE IF NOT EXISTS DEMAND_FORECAST (
     Forecast_ID INT PRIMARY KEY AUTO_INCREMENT,
     Product_ID INT NOT NULL,
@@ -97,11 +98,12 @@ CREATE TABLE IF NOT EXISTS DEMAND_FORECAST (
     UNIQUE KEY unique_forecast (Product_ID, Forecast_Month),
     FOREIGN KEY (Product_ID) REFERENCES PRODUCTS(Product_ID) ON DELETE CASCADE
 );
-");
+";
+$conn->query($sql_forecast_table);
 
-// ===================================================
+// =======================================================
 // BOOK COST SYSTEM TABLES
-// ===================================================
+// =======================================================
 
 $conn->query("
 CREATE TABLE IF NOT EXISTS BOOK_COST_SHEETS (
@@ -124,5 +126,4 @@ CREATE TABLE IF NOT EXISTS BOOK_COST_ITEMS (
     FOREIGN KEY (Sheet_ID) REFERENCES BOOK_COST_SHEETS(Sheet_ID) ON DELETE CASCADE
 );
 ");
-
 ?>
